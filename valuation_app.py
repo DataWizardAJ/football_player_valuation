@@ -16,7 +16,7 @@ def load_models():
 
 @st.cache_data
 def load_data():
-    return pd.read_csv(os.path.join(BASE_DIR, 'raw_data.csv'))
+    return pd.read_csv(os.path.join(BASE_DIR, 'paid_player_transfers_with_stats.csv'))
 
 pipeline, rf_no_mv = load_models()
 raw_data = load_data()

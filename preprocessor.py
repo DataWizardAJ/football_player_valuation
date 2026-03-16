@@ -29,12 +29,12 @@ class FootballPreprocessor(BaseEstimator, TransformerMixin):
         df = df.drop(columns=[c for c in self.drop_cols if c in df.columns])
         df = pd.get_dummies(df, columns=['role'], drop_first=False)
     
-    # Only encode columns that actually exist in the dataframe
         for col in self.high_cardinality_cols:
             if col in df.columns:
                 df[col] = df[col].map(self.target_encoding_maps[col])
             else:
-                df[col] = 0  # fill with 0 if column is missing entirely
+                # Use mean of all known encoded values as a neutral estimate
+                df[col] = self.target_encoding_maps[col].mean()
     
         return df
 

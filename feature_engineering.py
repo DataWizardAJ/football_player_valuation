@@ -2,19 +2,36 @@ import pandas as pd
 import numpy as np
 import requests
 import io
-import duckdb
+import os
+import zipfile
+import streamlit as st
 
 def load_raw_data():
-    """Load raw datasets using DuckDB remote query — no download required"""
-    
-    base_url = 'https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data'
-    
-    appearances = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/appearances.csv')").df()
-    games       = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/games.csv')").df()
-    players     = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/players.csv')").df()
-    lineups     = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/game_lineups.csv')").df()
-    
+    """Load raw datasets via Kaggle API"""
+
+    # Set credentials from Streamlit secrets
+    os.environ['alexcess'] = st.secrets['alexcess']
+    os.environ['KGAT_9f02448df6ff3f4ecb0bce4b32a11226']      = st.secrets['KGAT_9f02448df6ff3f4ecb0bce4b32a11226']
+
+    import kaggle
+
+    # Download dataset if not already cached
+    data_dir = '/tmp/transfermarkt'
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+        kaggle.api.dataset_download_files(
+            'davidcaribou/transfermarkt-datasets',
+            path=data_dir,
+            unzip=True
+        )
+
+    appearances = pd.read_csv(f'{data_dir}/appearances.csv')
+    games       = pd.read_csv(f'{data_dir}/games.csv')
+    players     = pd.read_csv(f'{data_dir}/players.csv')
+    lineups     = pd.read_csv(f'{data_dir}/game_lineups.csv')
+
     return appearances, games, players, lineups
+
 
 
 def merge_data(appearances, games, players, lineups):

@@ -114,8 +114,15 @@ def simplify_positions(df):
 
 
 def convert_season_format(df):
-    """Convert season from xx/yy format to 20yy integer"""
-    df['season'] = df['season'].str.split('/').str[1].apply(lambda x: int('20' + x))
+    """Convert season to 4 digit year if not already"""
+    # If already an integer (e.g. 2026), no conversion needed
+    if pd.api.types.is_integer_dtype(df['season']):
+        return df
+    
+    # If string in xx/yy format, convert to 20yy
+    if df['season'].dtype == object:
+        df['season'] = df['season'].str.split('/').str[1].apply(lambda x: int('20' + x))
+    
     return df
 
 

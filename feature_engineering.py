@@ -11,17 +11,12 @@ def load_raw_data():
     os.environ['KAGGLE_USERNAME'] = st.secrets['KAGGLE_USERNAME']
     os.environ['KAGGLE_KEY']      = st.secrets['KAGGLE_KEY']
 
-    # Downloads and returns the path to the dataset folder
     path = kagglehub.dataset_download('davidcariboo/player-scores')
-    
-    print(f'Dataset downloaded to: {path}')
-    for f in os.listdir(path):
-        print(f)
 
-    appearances = pd.read_csv(f'{path}/appearances.csv')
-    games       = pd.read_csv(f'{path}/games.csv')
-    players     = pd.read_csv(f'{path}/players.csv')
-    lineups     = pd.read_csv(f'{path}/game_lineups.csv')
+    appearances = pd.read_csv(f'{path}/appearances.csv',   low_memory=False)
+    games       = pd.read_csv(f'{path}/games.csv',         low_memory=False)
+    players     = pd.read_csv(f'{path}/players.csv',       low_memory=False)
+    lineups     = pd.read_csv(f'{path}/game_lineups.csv',  low_memory=False)
 
     return appearances, games, players, lineups
 

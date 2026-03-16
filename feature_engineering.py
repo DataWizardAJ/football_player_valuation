@@ -7,15 +7,11 @@ import zipfile
 import streamlit as st
 
 def load_raw_data():
-    """Load raw datasets via Kaggle API"""
-
-    # Set credentials from Streamlit secrets
     os.environ['KAGGLE_USERNAME'] = st.secrets['KAGGLE_USERNAME']
     os.environ['KAGGLE_KEY']      = st.secrets['KAGGLE_KEY']
 
     import kaggle
 
-    # Download dataset if not already cached
     data_dir = '/tmp/transfermarkt'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -24,6 +20,11 @@ def load_raw_data():
             path=data_dir,
             unzip=True
         )
+
+    # Debug — print everything that was downloaded
+    for root, dirs, files in os.walk(data_dir):
+        for file in files:
+            print(os.path.join(root, file))
 
     appearances = pd.read_csv(f'{data_dir}/appearances.csv')
     games       = pd.read_csv(f'{data_dir}/games.csv')

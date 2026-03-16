@@ -32,9 +32,12 @@ class FootballPreprocessor(BaseEstimator, TransformerMixin):
         for col in self.high_cardinality_cols:
             if col in df.columns:
                 df[col] = df[col].map(self.target_encoding_maps[col])
-            else:
-                # Use mean of all known encoded values as a neutral estimate
-                df[col] = self.target_encoding_maps[col].mean()
+        else:
+            # Use mean of top 20% highest paying clubs as default
+            encoding_map    = self.target_encoding_maps[col]
+            top_20_threshold = encoding_map.quantile(0.80)
+            top_20_mean      = encoding_map[encoding_map >= top_20_threshold].mean()
+            df[col]          = top_20_mean
     
         return df
 

@@ -13,18 +13,27 @@ def load_raw_data():
     import kaggle
 
     data_dir = '/tmp/transfermarkt'
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-        kaggle.api.dataset_download_files(
-            'davidcaribou/transfermarkt-datasets',
-            path=data_dir,
-            unzip=True
-        )
+    os.makedirs(data_dir, exist_ok=True)
 
-    # Debug — print everything that was downloaded
+    print('Attempting Kaggle download...')
+    kaggle.api.authenticate()
+    kaggle.api.dataset_download_files(
+        'davidcaribou/transfermarkt-datasets',
+        path=data_dir,
+        unzip=True,
+        quiet=False  # verbose output so we can see what's happening
+    )
+
+    # Print everything in /tmp to see what actually downloaded
+    print('Files in /tmp/transfermarkt:')
     for root, dirs, files in os.walk(data_dir):
         for file in files:
             print(os.path.join(root, file))
+
+    # Also print /tmp root in case files landed there instead
+    print('Files in /tmp:')
+    for f in os.listdir('/tmp'):
+        print(f)
 
     appearances = pd.read_csv(f'{data_dir}/appearances.csv')
     games       = pd.read_csv(f'{data_dir}/games.csv')

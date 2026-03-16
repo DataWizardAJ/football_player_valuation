@@ -48,33 +48,30 @@ def player_transfer_analysis(player_name):
     return player_info
 
 # ── Feature 2: Transfer Fee Predictor ────────────────────────────────────────
-def predict_transfer_fee(player_name, buying_club_name):
+def predict_transfer_fee(player_name, buying_club_name=None):
     player_data = stats_2025[stats_2025['player_name'].str.lower() == player_name.lower()]
 
     if player_data.empty:
         return None, f"No stats found for '{player_name}'"
 
-    club_row = raw_data[raw_data['to_club_name'].str.lower() == buying_club_name.lower()]
-
-    if club_row.empty:
-        return None, f"Buying club '{buying_club_name}' not found in training data"
-
-    buying_club_id = club_row['to_club_id'].iloc[0]
-    buying_club_competition = club_row['domestic_competition_id'].iloc[0]
     player_row = player_data.iloc[-1:].copy()
 
-    # Inject buying club info
-    player_row['to_club_id']   = buying_club_id
-    player_row['to_club_name'] = buying_club_name
+    # Only inject buying club if one was provided
+    if buying_club_name:
+        club_row = raw_data[raw_data['to_club_name'].str.lower() == buying_club_name.lower()]
 
-    # Use current club as from_club if not already present
+        if club_row.empty:
+            return None, f"Buying club '{buying_club_name}' not found in training data"
+
+        player_row['to_club_id']   = club_row['to_club_id'].iloc[0]
+        player_row['to_club_name'] = buying_club_name
+
+        if 'domestic_competition_id' not in player_row.columns:
+            player_row['domestic_competition_id'] = club_row['domestic_competition_id'].iloc[0]
+
     if 'from_club_id' not in player_row.columns:
         player_row['from_club_id']   = player_row['club_id']
         player_row['from_club_name'] = player_row.get('club_name', 'Unknown')
-
-    # Use buying club's competition if not already present
-    if 'domestic_competition_id' not in player_row.columns:
-        player_row['domestic_competition_id'] = buying_club_competition
 
     X              = player_row.drop(columns=['transfer_fee'], errors='ignore')
     X_preprocessed = pipeline.named_steps['preprocessor'].transform(X)
@@ -114,20 +111,32 @@ with tab1:
             col3.metric('🔴 Overvalued', overvalued_count)
 
 # ── Tab 2: Fee Predictor ──────────────────────────────────────────────────────
+# ── Tab 2: Fee Predictor ──────────────────────────────────────────────────────
 with tab2:
-    st.write('Select a player and a buying club to predict the transfer fee based on their stats from last season.')
+    st.write('Select a player to predict their transfer fee. Optionally include a buying club for a more accurate prediction.')
 
     all_2025_players = sorted(stats_2025['player_name'].dropna().unique().tolist())
     all_clubs        = sorted(raw_data['to_club_name'].dropna().unique().tolist())
 
-    player_name_pred = st.selectbox('Select a player:', [''] + all_2025_players, key='tab2_player')
-    buying_club      = st.selectbox('Select buying club:', [''] + all_clubs, key='tab2_club')
+    player_name_pred  = st.selectbox('Select a player:', [''] + all_2025_players, key='tab2_player')
+    include_club      = st.checkbox('Include buying club for a more accurate prediction')
 
-    if player_name_pred and buying_club:
+    buying_club = None
+    if include_club:
+        buying_club = st.selectbox('Select buying club:', [''] + all_clubs, key='tab2_club')
+
+    # Only show button once a player is selected
+    if player_name_pred:
         if st.button('Predict Transfer Fee'):
-            predicted_fee, error = predict_transfer_fee(player_name_pred, buying_club)
-
-            if error:
-                st.error(error)
+            if include_club and not buying_club:
+                st.warning('Please select a buying club or uncheck the box to predict without one.')
             else:
-                st.success(f'Predicted Transfer Fee: €{predicted_fee:,.0f}')
+                predicted_fee, error = predict_transfer_fee(player_name_pred, buying_club)
+
+                if error:
+                    st.error(error)
+                else:
+                    if buying_club:
+                        st.success(f'Predicted Transfer Fee for {player_name_pred} to {buying_club}: €{predicted_fee:,.0f}')
+                    else:
+                        st.success(f'Predicted Transfer Fee for {player_name_pred}: €{predicted_fee:,.0f}')

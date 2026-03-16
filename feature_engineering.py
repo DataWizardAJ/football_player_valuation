@@ -2,13 +2,29 @@ import pandas as pd
 import numpy as np
 
 
+import requests
+import io
+
 def load_raw_data():
-    """Load raw datasets from transfermarkt-datasets GitHub repo"""
-    appearances = pd.read_csv('https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data/appearances.csv')
-    games       = pd.read_csv('https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data/games.csv')
-    players     = pd.read_csv('https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data/players.csv')
-    lineups     = pd.read_csv('https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data/game_lineups.csv')
-    return appearances, games, players, lineups
+    """Load raw datasets from transfermarkt-datasets using GitHub API"""
+    
+    base_url = 'https://media.githubusercontent.com/media/dcaribou/transfermarkt-datasets/master/data/'
+    
+    files = {
+        'appearances': 'appearances.csv',
+        'games':       'games.csv',
+        'players':     'players.csv',
+        'lineups':     'game_lineups.csv'
+    }
+    
+    dfs = {}
+    for name, filename in files.items():
+        print(f'Downloading {filename}...')
+        response = requests.get(base_url + filename)
+        response.raise_for_status()
+        dfs[name] = pd.read_csv(io.StringIO(response.text))
+    
+    return dfs['appearances'], dfs['games'], dfs['players'], dfs['lineups']
 
 
 def merge_data(appearances, games, players, lineups):

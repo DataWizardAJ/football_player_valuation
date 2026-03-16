@@ -10,8 +10,8 @@ def load_raw_data():
     """Load raw datasets via Kaggle API"""
 
     # Set credentials from Streamlit secrets
-    os.environ['alexcess'] = st.secrets['alexcess']
-    os.environ['KGAT_9f02448df6ff3f4ecb0bce4b32a11226']      = st.secrets['KGAT_9f02448df6ff3f4ecb0bce4b32a11226']
+    os.environ['KAGGLE_USERNAME'] = st.secrets['KAGGLE_USERNAME']
+    os.environ['KAGGLE_KEY']      = st.secrets['KAGGLE_KEY']
 
     import kaggle
 

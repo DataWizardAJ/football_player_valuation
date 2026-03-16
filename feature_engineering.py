@@ -6,23 +6,21 @@ import requests
 import io
 
 def load_raw_data():
-    """Load raw datasets from transfermarkt-datasets using GitHub API"""
+    """Load raw datasets from transfermarkt-datasets Cloudflare R2 storage"""
     
-    base_url = 'https://media.githubusercontent.com/media/dcaribou/transfermarkt-datasets/master/data/'
+    base_url = 'https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/'
     
     files = {
-        'appearances': 'appearances.csv',
-        'games':       'games.csv',
-        'players':     'players.csv',
-        'lineups':     'game_lineups.csv'
+        'appearances': 'appearances.csv.gz',
+        'games':       'games.csv.gz',
+        'players':     'players.csv.gz',
+        'lineups':     'game_lineups.csv.gz'
     }
     
     dfs = {}
     for name, filename in files.items():
         print(f'Downloading {filename}...')
-        response = requests.get(base_url + filename)
-        response.raise_for_status()
-        dfs[name] = pd.read_csv(io.StringIO(response.text))
+        dfs[name] = pd.read_csv(base_url + filename, compression='gzip')
     
     return dfs['appearances'], dfs['games'], dfs['players'], dfs['lineups']
 

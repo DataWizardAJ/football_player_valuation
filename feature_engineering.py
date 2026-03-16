@@ -13,10 +13,24 @@ def load_raw_data():
 
     path = kagglehub.dataset_download('davidcariboo/player-scores')
 
-    appearances = pd.read_csv(f'{path}/appearances.csv',   low_memory=False)
-    games       = pd.read_csv(f'{path}/games.csv',         low_memory=False)
-    players     = pd.read_csv(f'{path}/players.csv',       low_memory=False)
-    lineups     = pd.read_csv(f'{path}/game_lineups.csv',  low_memory=False)
+    # Only load columns you actually need - saves significant memory
+    appearances = pd.read_csv(f'{path}/appearances.csv', low_memory=False, usecols=[
+        'game_id', 'player_id', 'player_club_id', 'yellow_cards', 'red_cards',
+        'goals', 'assists', 'minutes_played'
+    ])
+
+    games = pd.read_csv(f'{path}/games.csv', low_memory=False, usecols=[
+        'game_id', 'competition_id', 'season', 'home_club_id', 'away_club_id',
+        'home_club_goals', 'away_club_goals'
+    ])
+
+    players = pd.read_csv(f'{path}/players.csv', low_memory=False, usecols=[
+        'player_id', 'name', 'date_of_birth'
+    ])
+
+    lineups = pd.read_csv(f'{path}/game_lineups.csv', low_memory=False, usecols=[
+        'game_id', 'player_id', 'club_id', 'player_name', 'type', 'position'
+    ])
 
     return appearances, games, players, lineups
 
@@ -161,6 +175,20 @@ def add_time_features(df):
 
 
 def run_pipeline():
+    
+    print('Loading raw data...')
+    appearances, games, players, lineups = load_raw_data()
+
+    # Only keep last 4 seasons - enough for rolling 3yr stats + prior year
+    print('Filtering to recent seasons...')
+    current_season = games['season'].max()
+    recent_seasons = [current_season, current_season-1, current_season-2, current_season-3]
+    games    = games[games['season'].isin(recent_seasons)]
+    game_ids = games['game_id'].unique()
+    lineups      = lineups[lineups['game_id'].isin(game_ids)]
+    appearances  = appearances[appearances['game_id'].isin(game_ids)]
+
+    # rest of pipeline continues as before...
     """Run the full feature engineering pipeline and return processed dataframe"""
     print('Loading raw data...')
     appearances, games, players, lineups = load_raw_data()

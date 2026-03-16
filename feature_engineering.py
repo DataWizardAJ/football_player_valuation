@@ -1,28 +1,20 @@
 import pandas as pd
 import numpy as np
-
-
 import requests
 import io
+import duckdb
 
 def load_raw_data():
-    """Load raw datasets from transfermarkt-datasets Cloudflare R2 storage"""
+    """Load raw datasets using DuckDB remote query — no download required"""
     
-    base_url = 'https://pub-e682421888d945d684bcae8890b0ec20.r2.dev/data/'
+    base_url = 'https://raw.githubusercontent.com/dcaribou/transfermarkt-datasets/master/data'
     
-    files = {
-        'appearances': 'appearances.csv.gz',
-        'games':       'games.csv.gz',
-        'players':     'players.csv.gz',
-        'lineups':     'game_lineups.csv.gz'
-    }
+    appearances = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/appearances.csv')").df()
+    games       = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/games.csv')").df()
+    players     = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/players.csv')").df()
+    lineups     = duckdb.query(f"SELECT * FROM read_csv_auto('{base_url}/game_lineups.csv')").df()
     
-    dfs = {}
-    for name, filename in files.items():
-        print(f'Downloading {filename}...')
-        dfs[name] = pd.read_csv(base_url + filename, compression='gzip')
-    
-    return dfs['appearances'], dfs['games'], dfs['players'], dfs['lineups']
+    return appearances, games, players, lineups
 
 
 def merge_data(appearances, games, players, lineups):

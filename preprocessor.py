@@ -35,7 +35,7 @@ class FootballPreprocessor(BaseEstimator, TransformerMixin):
             else:
                 # Use mean of top 20% highest paying clubs as default
                 encoding_map    = self.target_encoding_maps[col]
-                top_20_threshold = encoding_map.quantile(0.80)
+                top_20_threshold = encoding_map.quantile(0.90)
                 top_20_mean      = encoding_map[encoding_map >= top_20_threshold].mean()
                 df[col]          = top_20_mean
     

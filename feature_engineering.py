@@ -5,40 +5,23 @@ import io
 import os
 import zipfile
 import streamlit as st
+import kagglehub
 
 def load_raw_data():
     os.environ['KAGGLE_USERNAME'] = st.secrets['KAGGLE_USERNAME']
     os.environ['KAGGLE_KEY']      = st.secrets['KAGGLE_KEY']
 
-    import kaggle
-
-    data_dir = '/tmp/transfermarkt'
-    os.makedirs(data_dir, exist_ok=True)
-
-    print('Attempting Kaggle download...')
-    kaggle.api.authenticate()
-    kaggle.api.dataset_download_files(
-        'davidcaribou/transfermarkt-datasets',
-        path=data_dir,
-        unzip=True,
-        quiet=False  # verbose output so we can see what's happening
-    )
-
-    # Print everything in /tmp to see what actually downloaded
-    print('Files in /tmp/transfermarkt:')
-    for root, dirs, files in os.walk(data_dir):
-        for file in files:
-            print(os.path.join(root, file))
-
-    # Also print /tmp root in case files landed there instead
-    print('Files in /tmp:')
-    for f in os.listdir('/tmp'):
+    # Downloads and returns the path to the dataset folder
+    path = kagglehub.dataset_download('davidcariboo/player-scores')
+    
+    print(f'Dataset downloaded to: {path}')
+    for f in os.listdir(path):
         print(f)
 
-    appearances = pd.read_csv(f'{data_dir}/appearances.csv')
-    games       = pd.read_csv(f'{data_dir}/games.csv')
-    players     = pd.read_csv(f'{data_dir}/players.csv')
-    lineups     = pd.read_csv(f'{data_dir}/game_lineups.csv')
+    appearances = pd.read_csv(f'{path}/appearances.csv')
+    games       = pd.read_csv(f'{path}/games.csv')
+    players     = pd.read_csv(f'{path}/players.csv')
+    lineups     = pd.read_csv(f'{path}/game_lineups.csv')
 
     return appearances, games, players, lineups
 

@@ -183,6 +183,7 @@ def add_time_features(df):
 
 def run_pipeline():
     
+    """Run the full feature engineering pipeline and return processed dataframe"""
     print('Loading raw data...')
     appearances, games, players, lineups = load_raw_data()
 
@@ -195,10 +196,6 @@ def run_pipeline():
     lineups      = lineups[lineups['game_id'].isin(game_ids)]
     appearances  = appearances[appearances['game_id'].isin(game_ids)]
 
-    # rest of pipeline continues as before...
-    """Run the full feature engineering pipeline and return processed dataframe"""
-    print('Loading raw data...')
-    appearances, games, players, lineups = load_raw_data()
 
     print('Merging data...')
     df = merge_data(appearances, games, players, lineups)

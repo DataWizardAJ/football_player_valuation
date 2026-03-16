@@ -49,10 +49,10 @@ def player_transfer_analysis(player_name):
 
 # ── Feature 2: Transfer Fee Predictor ────────────────────────────────────────
 def predict_transfer_fee(player_name, buying_club_name):
-    player_data = stats_2026[stats_2026['player_name'].str.lower() == player_name.lower()]
+    player_data = stats_2025[stats_2025['player_name'].str.lower() == player_name.lower()]
 
     if player_data.empty:
-        return None, f"No 2026 stats found for '{player_name}'"
+        return None, f"No stats found for '{player_name}'"
 
     club_row = raw_data[raw_data['to_club_name'].str.lower() == buying_club_name.lower()]
 

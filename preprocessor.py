@@ -24,12 +24,18 @@ class FootballPreprocessor(BaseEstimator, TransformerMixin):
         self.final_columns = temp.columns.tolist()
         return self
 
+    
     def _base_transform(self, df):
-        # Shared logic used by both fit and transform
         df = df.drop(columns=[c for c in self.drop_cols if c in df.columns])
         df = pd.get_dummies(df, columns=['role'], drop_first=False)
+    
+    # Only encode columns that actually exist in the dataframe
         for col in self.high_cardinality_cols:
-            df[col] = df[col].map(self.target_encoding_maps[col])
+            if col in df.columns:
+                df[col] = df[col].map(self.target_encoding_maps[col])
+            else:
+                df[col] = 0  # fill with 0 if column is missing entirely
+    
         return df
 
     def transform(self, X, y=None):

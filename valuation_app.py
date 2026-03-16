@@ -49,10 +49,10 @@ def player_transfer_analysis(player_name):
 
 # ── Feature 2: Transfer Fee Predictor ────────────────────────────────────────
 def predict_transfer_fee(player_name, buying_club_name):
-    player_data = stats_2025[stats_2025['player_name'].str.lower() == player_name.lower()]
+    player_data = stats_2026[stats_2026['player_name'].str.lower() == player_name.lower()]
 
     if player_data.empty:
-        return None, f"No 2025 stats found for '{player_name}'"
+        return None, f"No 2026 stats found for '{player_name}'"
 
     club_row = raw_data[raw_data['to_club_name'].str.lower() == buying_club_name.lower()]
 
@@ -60,10 +60,21 @@ def predict_transfer_fee(player_name, buying_club_name):
         return None, f"Buying club '{buying_club_name}' not found in training data"
 
     buying_club_id = club_row['to_club_id'].iloc[0]
-    player_row     = player_data.iloc[-1:].copy()
+    buying_club_competition = club_row['domestic_competition_id'].iloc[0]
+    player_row = player_data.iloc[-1:].copy()
 
+    # Inject buying club info
     player_row['to_club_id']   = buying_club_id
     player_row['to_club_name'] = buying_club_name
+
+    # Use current club as from_club if not already present
+    if 'from_club_id' not in player_row.columns:
+        player_row['from_club_id']   = player_row['club_id']
+        player_row['from_club_name'] = player_row.get('club_name', 'Unknown')
+
+    # Use buying club's competition if not already present
+    if 'domestic_competition_id' not in player_row.columns:
+        player_row['domestic_competition_id'] = buying_club_competition
 
     X              = player_row.drop(columns=['transfer_fee'], errors='ignore')
     X_preprocessed = pipeline.named_steps['preprocessor'].transform(X)
